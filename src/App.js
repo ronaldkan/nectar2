@@ -8,6 +8,9 @@ import AWS from 'aws-sdk';
 import uuid from 'uuid';
 
 
+import Build from './Build';
+import Deploy from './Deploy'
+
 class App extends Component {
 
   componentDidMount() {
@@ -45,10 +48,10 @@ class App extends Component {
           <Grid columns='three' divided>
             <Grid.Row>
               <Grid.Column width={8}>
-                <Button>Ok</Button>
+                <Build></Build>
               </Grid.Column>
               <Grid.Column width={8}>
-                <Button>Ok</Button>
+                <Deploy></Deploy>
               </Grid.Column>
             </Grid.Row>
           </Grid>
