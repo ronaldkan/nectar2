@@ -10,7 +10,7 @@ class Build extends Component {
 
     componentDidMount() {
         // initialize AWS credential and limit api versions
-        var creds = new AWS.Credentials('AKIAQ722XR6B2NNPH3WZ', 'ardJbvvUuIp/kd1gZtekI/4FOGzPldxykpMdMUNa');
+        var creds = new AWS.Credentials('', '');
         AWS.config.credentials = creds;
         AWS.config.region = 'ap-southeast-1';
         AWS.config.apiVersions = {
