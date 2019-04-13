@@ -5,10 +5,12 @@
   "dependencies": {
     "aws-sdk": "^2.437.0",
     "axios": "^0.18.0",
+    "moment": "^2.24.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "2.1.8",
     "semantic-ui-react": "^0.86.0",
+    "simple-git": "^1.110.0",
     "uuid": "^3.3.2"
   },
   "scripts": {
