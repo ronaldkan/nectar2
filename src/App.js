@@ -6,6 +6,9 @@ import './App.css';
 import { Button, Grid, Container } from 'semantic-ui-react'
 import AWS from 'aws-sdk';
 
+import Build from './Build';
+import Deploy from './Deploy'
+
 class App extends Component {
   render() {
     return (
@@ -14,10 +17,10 @@ class App extends Component {
           <Grid columns='three' divided>
             <Grid.Row>
               <Grid.Column width={8}>
-                <Button>Ok</Button>
+                <Build></Build>
               </Grid.Column>
               <Grid.Column width={8}>
-                <Button>Ok</Button>
+                <Deploy></Deploy>
               </Grid.Column>
             </Grid.Row>
           </Grid>
