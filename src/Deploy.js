@@ -1,10 +1,13 @@
 import React, {Component} from 'react'
-import { Button } from 'semantic-ui-react'
+import { Button, Header } from 'semantic-ui-react'
 
 class Deploy extends Component{
     render(){
         return(
-            <Button>Ok</Button>
+            <div>
+                <Header size='large'>Deploy</Header>
+                <Button>Ok</Button>
+            </div> 
         )
     }
 }
