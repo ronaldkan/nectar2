@@ -10,7 +10,7 @@ class Build extends Component {
 
     componentDidMount() {
         // initialize AWS credential and limit api versions
-        var creds = new AWS.Credentials('', '');
+        var creds = new AWS.Credentials('AKIAQ722XR6B2NNPH3WZ', 'ardJbvvUuIp/kd1gZtekI/4FOGzPldxykpMdMUNa');
         AWS.config.credentials = creds;
         AWS.config.region = 'ap-southeast-1';
         AWS.config.apiVersions = {
@@ -157,8 +157,8 @@ class Build extends Component {
                                         <List.Icon name='box' size='large' verticalAlign='middle' />
                                         <List.Content>
                                             <List.Header as='a' onClick={() =>
-                                                setImageValue(`${item.registryId}.dkr.ecr.ap-southeast-1..amazonaws.com/${item.repositoryName}@${item.imageId.imageDigest}`)}>
-                                                {item.registryId}.dkr.ecr.ap-southeast-1..amazonaws.com/{item.repositoryName}@{item.imageId.imageDigest}
+                                                setImageValue(`${item.registryId}.dkr.ecr.ap-southeast-1.amazonaws.com/${item.repositoryName}@${item.imageId.imageDigest}`)}>
+                                                {item.registryId}.dkr.ecr.ap-southeast-1.amazonaws.com/{item.repositoryName}@{item.imageId.imageDigest}
                                             </List.Header>
                                             <List.Description as='a'>{item.imageId.imageTag ? item.imageId.imageTag : '<untagged>'}</List.Description>
                                         </List.Content>
