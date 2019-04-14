@@ -9,15 +9,6 @@ class Build extends Component {
     state = { projectName: '', repository: '', isLoading: false, isError: false, builds: [], isBuilds: true };
 
     componentDidMount() {
-        // initialize AWS credential and limit api versions
-        var creds = new AWS.Credentials('AKIAQ722XR6B2NNPH3WZ', 'ardJbvvUuIp/kd1gZtekI/4FOGzPldxykpMdMUNa');
-        AWS.config.credentials = creds;
-        AWS.config.region = 'ap-southeast-1';
-        AWS.config.apiVersions = {
-            codebuild: '2016-10-06',
-            ecr: '2015-09-21'
-        };
-
         // background task to fetch builds
         this.fetchBuilds();
         this.timer = setInterval(() => this.fetchBuilds(), 15000);
