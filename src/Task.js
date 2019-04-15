@@ -109,21 +109,7 @@ class Task extends Component {
         const { tasks, isLoading, nodeFamily, nodeName, nodeImage } = this.state;
         return (
             <div>
-                <Header size='large'>Node List</Header>
-                <List divided relaxed>
-                    {
-                        tasks.map((item, i) => {
-                            return (
-                                <List.Item key={i}>
-                                    <List.Icon name = 'configure' size='small' verticalAlign='middle' />
-                                    <List.Content>
-                                        <List.Description as='a' onClick={(e) => this.fetchTaskDefinition(item, e)}>{item}
-                                        </List.Description>
-                                    </List.Content>
-                            </List.Item>)
-                        }) 
-                    }
-                </List>
+            
                 <Header size='large'>Node Definition</Header>
                 <Form loading={isLoading}>
                     <Form.Field>
@@ -142,8 +128,23 @@ class Task extends Component {
                         image: nodeImage,
                         family: nodeFamily,
                         name: nodeName,
-                    }, e)}>Submit</Button>
+                    }, e)}>Create</Button>
                 </Form>
+                <Header size='large'>Node List</Header>
+                <List divided relaxed>
+                    {
+                        tasks.map((item, i) => {
+                            return (
+                                <List.Item key={i}>
+                                    <List.Icon name = 'configure' size='small' verticalAlign='middle' />
+                                    <List.Content>
+                                        <List.Description as='a' onClick={(e) => this.fetchTaskDefinition(item, e)}>{item}
+                                        </List.Description>
+                                    </List.Content>
+                            </List.Item>)
+                        }) 
+                    }
+                </List>
             </div>
         )
     }

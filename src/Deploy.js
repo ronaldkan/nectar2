@@ -100,7 +100,14 @@ class Deploy extends Component {
                         }) 
                     }
                 </List>
-                <p size='small'>{ip}</p>
+                {
+                    ip && 
+                    <div>
+                        <Header size="medium">Public IP</Header>
+                        <a href={'http://' + ip + ':8080'} size='small'>{ip}</a>
+                    </div>
+                }
+                
             </div>
         )
     }
