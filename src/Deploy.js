@@ -5,14 +5,19 @@ import { getRunTaskParams } from './utils/Deploy';
 
 class Deploy extends Component {
 
-    state = { runningTasks: [], ip: '' }
+    state = { runningTasks: [], ip: '', isLoading: false }
 
     componentDidMount() {
-        setTimeout(() => {
+        this.timer = setInterval(() => {
             this.ecs = new AWS.ECS();
             this.ec2 = new AWS.EC2();
             this.listTasks();
-        }, 1000);
+        }, 15000);
+    }
+
+    componentWillUnmount() {
+        // turn off background task when leaving the page
+        this.timer = null;
     }
 
     listTasks() {
@@ -23,14 +28,19 @@ class Deploy extends Component {
                 cluster: "fargate-test",
                 tasks: data.taskArns
             }, (er2, data2) => {
-                this.setState({ runningTasks: data2.tasks })
+                if (data2) {
+                    this.setState({ runningTasks: data2.tasks });
+                }
             })
         })
     }
 
     handleSubmit = (e) => {
         e.preventDefault();
-        this.ecs.runTask(getRunTaskParams(this.props.taskdefinition), (err, data) => { });
+        this.setState({ isLoading: true });
+        this.ecs.runTask(getRunTaskParams(this.props.taskdefinition), (err, data) => { 
+            this.setState({ isLoading: false });
+        });
     }
 
     fetchIP(item) {
@@ -45,20 +55,20 @@ class Deploy extends Component {
     }
 
     render() {
-        const { runningTasks, ip } = this.state;
+        const { runningTasks, isLoading } = this.state;
         const { taskdefinition, handleChange } = this.props;
 
         return (
             <div>
                 <Header size='large'>Deploy</Header>
-                <Form onSubmit={(e) => this.handleSubmit(e)}>
+                <Form loading={isLoading} onSubmit={(e) => this.handleSubmit(e)}>
                     <Form.Field>
                         <label>Node Definition</label>
                         <Form.Input name='taskdefinition' value={taskdefinition} placeholder='Node Definition' onChange={handleChange} />
                     </Form.Field>
                     <Button type='submit'>Deploy</Button>
                 </Form>
-                <Header size='large'>Running Nodes</Header>
+                <Header size='large'>Running Services</Header>
                 <List divided relaxed>
                     {
                         runningTasks.map((item, i) => {

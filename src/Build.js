@@ -14,6 +14,11 @@ class Build extends Component {
         this.timer = setInterval(() => this.fetchBuilds(), 15000);
     }
 
+    componentWillUnmount() {
+        // turn off background task when leaving the page
+        this.timer = null;
+    }
+
     fetchBuilds() {
         var codebuild = new AWS.CodeBuild();
         var ecr = new AWS.ECR();
@@ -42,11 +47,6 @@ class Build extends Component {
                 }
             });
         }
-    }
-
-    componentWillUnmount() {
-        // turn off background task when leaving the page
-        this.timer = null;
     }
 
     performBuild = (codebuild, projectName) => {

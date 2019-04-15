@@ -8,33 +8,39 @@ class Task extends Component {
     state = { tasks: [], isLoading: false, nodeFamily: '' }
 
     componentDidMount() {
-        setTimeout(() => {
+        this.timer = setInterval(() => {
             this.ecs = new AWS.ECS();
-            this.listTaskDefinitions()
-        }, 1000);
+            this.listTaskDefinitions();
+        }, 15000);
+    }
+
+    componentWillUnmount() {
+        // turn off background task when leaving the page
+        this.timer = null;
     }
 
     listTaskDefinitions() {
         let options = {};
-        this.setState({ isLoading: true });
         this.ecs.listTaskDefinitions(options, (err, data) => {
             if (data) {
                 let parsed = data.taskDefinitionArns.map(ele => {
                     return ele.split('/')[1];
                 })
-                this.setState({ tasks: parsed, isLoading: false });
+                this.setState({ tasks: parsed });
             }
         });
     }
 
     registerTaskDefinition(options, e) {
         e.preventDefault();
+        this.setState({ isLoading: true });
         this.ecs.registerTaskDefinition(getTaskRegisterParams(options), (err, data) => {
             if (data) {
-                this.setState({ 'nodeFamily' : ''});
+                this.setState({ 'nodeFamily': '' });
                 this.props.setStateValue('image', '');
                 this.listTaskDefinitions();
             }
+            this.setState({ isLoading: false });
         })
     }
 
@@ -77,7 +83,7 @@ class Task extends Component {
                     </Form.Field>
                     <Form.Field>
                         <label>Image URI</label>
-                        <Form.Input name='image' value={image} placeholder='Image path' onChange={handleChange}/>
+                        <Form.Input name='image' value={image} placeholder='Image path' onChange={handleChange} />
                     </Form.Field>
                     <Button onClick={(e) => this.registerTaskDefinition({
                         image: image,
