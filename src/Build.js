@@ -6,7 +6,7 @@ import { getCodeBuildCreateParams, getCodeBuildProjectNameParams, getECRCreatePa
 
 class Build extends Component {
 
-    state = { projectName: '', repository: '', isLoading: false, isError: false, builds: [], isBuilds: true };
+    state = { projectName: '', repository: '', isLoading: false, isError: false, builds: [], isBuilds: false };
 
     componentDidMount() {
         // background task to fetch builds
@@ -38,8 +38,6 @@ class Build extends Component {
                     }
                     ecr.batchGetImage(params, (err, data) => {
                         this.setState({ builds: data.images })
-                        console.log(err);
-                        console.log(data);
                     });
                 }
             });
@@ -100,14 +98,14 @@ class Build extends Component {
 
     render() {
         const { projectName, repository, isLoading, isError, builds, isBuilds } = this.state;
-        const { setImageValue } = this.props;
+        const { setStateValue } = this.props;
 
         return (
             <div>
                 <Header size='large'>Build</Header>
                 <Form loading={isLoading} onSubmit={() => this.handleSubmit(this.performBuild)}>
                     <Form.Field>
-                        <label>Project Name(Service Name)</label>
+                        <label>Project Name</label>
                         <Form.Input error={isError} name='projectName' value={projectName} placeholder='Project Name...' onChange={this.handleChange} />
                     </Form.Field>
                     <Form.Field>
@@ -116,7 +114,7 @@ class Build extends Component {
                     </Form.Field>
                     <Button type='submit'>Build</Button>
                 </Form>
-                <Divider horizontal>|</Divider>
+                <Header size='large'>{ isBuilds ? 'Builds' : 'Images' }</Header>
                 <Button.Group>
                     <Button positive={isBuilds} onClick={() => this.handleIsBuildsToggle(true)}>Builds</Button>
                     <Button.Or />
@@ -129,9 +127,9 @@ class Build extends Component {
                                 return (
 
                                     <List.Item key={i}>
-                                        <Popup trigger={<List.Icon name={item.buildStatus === 'SUCCEEDED' ? 'check' : 'sync'} 
-                                                size='large' verticalAlign='middle' />} 
-                                                content={item.buildStatus === 'SUCCEEDED' ? 'Build Complete' : 'Build in progress'}>
+                                        <Popup trigger={<List.Icon size='small' name={item.buildStatus === 'SUCCEEDED' ? 'check' : 'sync'}
+                                            size='large' verticalAlign='middle' />}
+                                            content={item.buildStatus === 'SUCCEEDED' ? 'Build Complete' : 'Build in progress'}>
                                         </Popup>
                                         <List.Content>
                                             <List.Header as='a'>{item.id}.</List.Header>
@@ -143,19 +141,15 @@ class Build extends Component {
                             }) :
                             builds.map(function (item, i) {
                                 return (
-
                                     <List.Item key={i}>
-                                        <List.Icon name='box' size='large' verticalAlign='middle' />
+                                        <List.Icon name='box' size='small' verticalAlign='middle' />
                                         <List.Content>
-                                            <List.Header as='a' onClick={() =>
-                                                setImageValue(`${item.registryId}.dkr.ecr.ap-southeast-1.amazonaws.com/${item.repositoryName}@${item.imageId.imageDigest}`)}>
-                                                {item.registryId}.dkr.ecr.ap-southeast-1.amazonaws.com/{item.repositoryName}@{item.imageId.imageDigest}
-                                            </List.Header>
-                                            <List.Description as='a'>{item.imageId.imageTag ? item.imageId.imageTag : '<untagged>'}</List.Description>
+                                            <List.Description as='a' onClick={() =>
+                                                setStateValue('image', `${item.registryId}.dkr.ecr.ap-southeast-1.amazonaws.com/${item.repositoryName}@${item.imageId.imageDigest}`)}>
+                                                {item.repositoryName}:{item.imageId.imageTag ? item.imageId.imageTag : '<untagged>'}
+                                            </List.Description>
                                         </List.Content>
                                     </List.Item>)
-
-
                             })
                     }
                 </List>

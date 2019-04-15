@@ -1,78 +1,52 @@
 import React, { Component } from 'react'
 import { Button, Header, Form, List } from 'semantic-ui-react'
 import AWS from 'aws-sdk'
+import { getRunTaskParams } from './utils/Deploy';
 
 class Deploy extends Component {
 
-    state = {taskdefinition: '', runningTasks: [], ip: ''}
+    state = { runningTasks: [], ip: '' }
 
     componentDidMount() {
-        setTimeout(() =>{
+        setTimeout(() => {
             this.ecs = new AWS.ECS();
             this.ec2 = new AWS.EC2();
             this.listTasks();
         }, 1000);
     }
 
-    runTask(){
-        let params = {
-            cluster: "fargate-test",
-            taskDefinition: this.state.taskdefinition,
-            count: 1,
-            launchType: 'FARGATE',
-            networkConfiguration: {
-                awsvpcConfiguration: {
-                    subnets: [
-                        'subnet-f47560bd'
-                    ],
-                    assignPublicIp: 'ENABLED',
-                    securityGroups: [
-                        'sg-02fb08fb50f4489bf'
-                    ]
-                }
-            }
-        }
-        this.ecs.runTask(params, (err, data)=>{
-            console.log(err);
-            console.log(data);
-        });
-    }
-
-    listTasks(){
+    listTasks() {
         this.ecs.listTasks({
             cluster: "fargate-test"
-        }, (err,data) => {
+        }, (err, data) => {
             this.ecs.describeTasks({
                 cluster: "fargate-test",
                 tasks: data.taskArns
-            }, (er2, data2) =>{
-                this.setState({ runningTasks: data2.tasks})
+            }, (er2, data2) => {
+                this.setState({ runningTasks: data2.tasks })
             })
         })
     }
 
-    handleChange = (e, { name, value }) => {
-        this.setState({ [name]: value });
-    }
-
     handleSubmit = (e) => {
         e.preventDefault();
-        this.runTask();
+        this.ecs.runTask(getRunTaskParams(this.props.taskdefinition), (err, data) => { });
     }
 
-    fetchIP(item){
-        console.log('fetchingIP');
+    fetchIP(item) {
         if (item.lastStatus !== 'RUNNING') return;
-        this.ec2.describeNetworkInterfaces({NetworkInterfaceIds: [
-            item.attachments[0].details[1].value
-        ]}, (err,data)=>{
-            console.log(data);
-            this.setState({ip: data.NetworkInterfaces[0].Association.PublicIp});
+        this.ec2.describeNetworkInterfaces({
+            NetworkInterfaceIds: [
+                item.attachments[0].details[1].value
+            ]
+        }, (err, data) => {
+            window.open(`http://${data.NetworkInterfaces[0].Association.PublicIp}:8080`);
         })
     }
 
     render() {
-        const { taskdefinition, runningTasks, ip } = this.state;
+        const { runningTasks, ip } = this.state;
+        const { taskdefinition, handleChange } = this.props;
 
         return (
             <div>
@@ -80,7 +54,7 @@ class Deploy extends Component {
                 <Form onSubmit={(e) => this.handleSubmit(e)}>
                     <Form.Field>
                         <label>Node Definition</label>
-                        <Form.Input name='taskdefinition' value={taskdefinition} placeholder='Node Definition' onChange={this.handleChange} />
+                        <Form.Input name='taskdefinition' value={taskdefinition} placeholder='Node Definition' onChange={handleChange} />
                     </Form.Field>
                     <Button type='submit'>Deploy</Button>
                 </Form>
@@ -90,24 +64,17 @@ class Deploy extends Component {
                         runningTasks.map((item, i) => {
                             return (
                                 <List.Item key={i}>
-                                    <List.Icon name = 'sitemap' size='small' verticalAlign='middle' />
-                                    <List.Content>
-                                        <List.Description as='a' onClick={(e) => this.fetchIP(item, e)}>
-                                            {item.taskDefinitionArn.split('/')[1]} {item.lastStatus}
+                                    <List.Icon name='sitemap' size='small' verticalAlign='middle' />
+                                    <List.Content onClick={(e) => this.fetchIP(item, e)}>
+                                        <List.Header as='a'>{item.taskDefinitionArn.split('/')[1]}</List.Header>
+                                        <List.Description as='a'>
+                                            {item.lastStatus}
                                         </List.Description>
                                     </List.Content>
-                            </List.Item>)
-                        }) 
+                                </List.Item>)
+                        })
                     }
                 </List>
-                {
-                    ip && 
-                    <div>
-                        <Header size="medium">Public IP</Header>
-                        <a href={'http://' + ip + ':8080'} size='small'>{ip}</a>
-                    </div>
-                }
-                
             </div>
         )
     }

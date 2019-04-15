@@ -1,102 +1,54 @@
 import React, { Component } from 'react'
 import { Button, Header, List, Form } from 'semantic-ui-react'
-
+import { getTaskRegisterParams } from './utils/Task';
 import AWS from 'aws-sdk'
 
 class Task extends Component {
 
-    state = {tasks: [], isLoading: false, nodeName: '', nodeFamily: '', nodeImage: this.props.nodeImage}
+    state = { tasks: [], isLoading: false, nodeFamily: '' }
 
     componentDidMount() {
-        setTimeout(() =>{
+        setTimeout(() => {
             this.ecs = new AWS.ECS();
             this.listTaskDefinitions()
         }, 1000);
     }
 
-    listTaskDefinitions(){
+    listTaskDefinitions() {
         let options = {};
-        this.setState({ isLoading: true});
-        this.ecs.listTaskDefinitions(options, (err,data)=>{
-            console.log(err);
-            console.log(data);
+        this.setState({ isLoading: true });
+        this.ecs.listTaskDefinitions(options, (err, data) => {
             if (data) {
                 let parsed = data.taskDefinitionArns.map(ele => {
                     return ele.split('/')[1];
                 })
-                this.setState({tasks: parsed, isLoading: false});
+                this.setState({ tasks: parsed, isLoading: false });
             }
         });
     }
 
-    registerTaskDefinition(options, e){
-        console.log(options);
+    registerTaskDefinition(options, e) {
         e.preventDefault();
-        let params ={
-            "executionRoleArn": "arn:aws:iam::068372893571:role/ecsTaskExecutionRole",
-            "containerDefinitions": [
-              {
-                "dnsSearchDomains": null,
-                "logConfiguration": {
-                  "logDriver": "awslogs",
-                  "options": {
-                    "awslogs-group": `/ecs/nodetask`,
-                    "awslogs-region": "ap-southeast-1",
-                    "awslogs-stream-prefix": "ecs"
-                  }
-                },
-                "portMappings": [
-                  {
-                    "hostPort": 8080,
-                    "protocol": "tcp",
-                    "containerPort": 8080
-                  },
-                  {
-                    "hostPort": 80,
-                    "protocol": "tcp",
-                    "containerPort": 80
-                  }
-                ],
-                "cpu": 0,
-                "environment": [],
-                "mountPoints": [],
-                "memoryReservation": 128,
-                "volumesFrom": [],
-                "image": `${options.image}`,
-                "name": `${options.name}`
-              }
-            ],
-            "placementConstraints": [],
-            "memory": "512",
-            "family": `${options.family}`,
-            "requiresCompatibilities": [
-              "FARGATE"
-            ],
-            "networkMode": "awsvpc",
-            "cpu": "256",
-            "volumes": []
-          }
-
-          this.ecs.registerTaskDefinition(params, (err,data)=>{
-              if (data){
-                  this.listTaskDefinitions();
-              }
-          })
+        this.ecs.registerTaskDefinition(getTaskRegisterParams(options), (err, data) => {
+            if (data) {
+                this.setState({ 'nodeFamily' : ''});
+                this.props.setStateValue('image', '');
+                this.listTaskDefinitions();
+            }
+        })
     }
 
-    fetchTaskDefinition(taskDefinition){
+    fetchTaskDefinition(taskDefinition) {
         let params = {
             taskDefinition: taskDefinition
         }
-        this.ecs.describeTaskDefinition(params, (err,data)=>{
-            console.log(err)
-            console.log(data)
+        this.ecs.describeTaskDefinition(params, (err, data) => {
             if (data) {
                 this.setState({
-                    nodeName: data.taskDefinition.containerDefinitions[0].name, 
-                    nodeFamily: data.taskDefinition.family,
-                    nodeImage: data.taskDefinition.containerDefinitions[0].image
+                    nodeFamily: data.taskDefinition.family
                 });
+                this.props.setStateValue('image', data.taskDefinition.containerDefinitions[0].image);
+                this.props.setStateValue('taskdefinition', taskDefinition);
             }
         })
     }
@@ -105,44 +57,47 @@ class Task extends Component {
         this.setState({ [name]: value });
     }
 
+    handleClear = () => {
+        this.props.setStateValue('image', '');
+        this.setState({ 'nodeFamily': '' });
+    }
+
     render() {
-        const { tasks, isLoading, nodeFamily, nodeName, nodeImage } = this.state;
+        const { tasks, isLoading, nodeFamily } = this.state;
+        const { image, handleChange } = this.props;
+
         return (
             <div>
-            
-                <Header size='large'>Node Definition</Header>
+
+                <Header size='large'>Service Definition</Header>
                 <Form loading={isLoading}>
                     <Form.Field>
-                        <label>Node Family</label>
+                        <label>Service Name</label>
                         <Form.Input name='nodeFamily' value={nodeFamily} placeholder='Node family...' onChange={this.handleChange} />
                     </Form.Field>
                     <Form.Field>
-                        <label>Node Image</label>
-                        <Form.Input name='nodeImage' value={nodeImage} placeholder='Image path' onChange={this.handleChange} />
-                    </Form.Field>
-                    <Form.Field>
-                        <label>Node Name</label>
-                        <Form.Input name='nodeName' value={nodeName} placeholder='Name' onChange={this.handleChange} />
+                        <label>Image URI</label>
+                        <Form.Input name='image' value={image} placeholder='Image path' onChange={handleChange}/>
                     </Form.Field>
                     <Button onClick={(e) => this.registerTaskDefinition({
-                        image: nodeImage,
-                        family: nodeFamily,
-                        name: nodeName,
+                        image: image,
+                        family: nodeFamily
                     }, e)}>Create</Button>
+                    <Button style={{ 'backgroundColor': '#ef8a36', 'color': 'white' }} onClick={this.handleClear}>Clear</Button>
                 </Form>
-                <Header size='large'>Node List</Header>
+                <Header size='large'>Service List</Header>
                 <List divided relaxed>
                     {
                         tasks.map((item, i) => {
                             return (
                                 <List.Item key={i}>
-                                    <List.Icon name = 'configure' size='small' verticalAlign='middle' />
+                                    <List.Icon name='configure' size='small' verticalAlign='middle' />
                                     <List.Content>
                                         <List.Description as='a' onClick={(e) => this.fetchTaskDefinition(item, e)}>{item}
                                         </List.Description>
                                     </List.Content>
-                            </List.Item>)
-                        }) 
+                                </List.Item>)
+                        })
                     }
                 </List>
             </div>
